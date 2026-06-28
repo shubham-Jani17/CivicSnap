@@ -1,0 +1,6 @@
+{
+  "name": "CivicSnap",
+  "description": "An AI-powered civic report and local volunteering action hub. Snap photos of neighborhood issues to generate municipal complaint drafts and volunteer cleanups.",
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
