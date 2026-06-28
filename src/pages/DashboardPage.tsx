@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { apiService } from "../services/api";
 import { Issue, Status } from "../types/index";
 import { motion } from "motion/react";
+import { CivicMap } from "../components/CivicMap";
 import {
   Award,
   PlusCircle,
@@ -16,7 +17,8 @@ import {
   UserCheck,
   Flame,
   CheckCircle,
-  HelpCircle
+  HelpCircle,
+  MapPin
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -35,6 +37,7 @@ export const DashboardPage: React.FC = () => {
   const { user, refreshProfile } = useAuth();
   const [userIssues, setUserIssues] = useState<Issue[]>([]);
   const [volunteeredIssues, setVolunteeredIssues] = useState<Issue[]>([]);
+  const [allIssues, setAllIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,11 +45,12 @@ export const DashboardPage: React.FC = () => {
       if (!user) return;
       try {
         await refreshProfile(); // Refresh points
-        const allIssues = await apiService.getIssues();
-        const filtered = allIssues.filter((issue) => issue.reporterUid === user.uid);
+        const fetchedIssues = await apiService.getIssues();
+        setAllIssues(fetchedIssues);
+        const filtered = fetchedIssues.filter((issue) => issue.reporterUid === user.uid);
         setUserIssues(filtered);
 
-        const volunteered = allIssues.filter((issue) => issue.volunteers.includes(user.uid));
+        const volunteered = fetchedIssues.filter((issue) => issue.volunteers.includes(user.uid));
         setVolunteeredIssues(volunteered);
       } catch (err) {
         console.warn("Failed to retrieve dashboard reports list:", err);
@@ -322,6 +326,37 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Geographical Anchor Mapping Panel */}
+      {!loading && (
+        <section className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div className="space-y-1">
+              <h2 className="text-sm font-bold text-slate-300 uppercase tracking-wider font-mono flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-sky-400 animate-bounce" />
+                My Mapped Incidents
+              </h2>
+              <p className="text-xs text-slate-400">
+                Visualizing the geographical anchor points of your civic report dispatches and cleanup events.
+              </p>
+            </div>
+            {!hasData && (
+              <span className="px-2.5 py-1 text-[10px] font-mono text-slate-500 bg-slate-950 border border-slate-900 rounded-lg">
+                Showing all sector anchors (Demo Mode)
+              </span>
+            )}
+          </div>
+          <div className="h-[340px] w-full rounded-3xl overflow-hidden border border-slate-900 shadow-md">
+            <CivicMap 
+              issues={
+                hasData
+                  ? [...userIssues, ...volunteeredIssues.filter(v => !userIssues.some(u => u.id === v.id))]
+                  : allIssues
+              } 
+            />
+          </div>
+        </section>
+      )}
 
       {/* Main Content Sections split: left is issues, right is action list */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

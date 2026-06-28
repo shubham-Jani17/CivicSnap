@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { apiService } from "../services/api";
 import { Issue, Category, Severity, Status } from "../types/index";
 import { motion, AnimatePresence } from "motion/react";
+import { CivicMap } from "../components/CivicMap";
 import {
   Search,
   Filter,
@@ -173,6 +174,27 @@ export const CommunityFeedPage: React.FC = () => {
           </select>
         </div>
       </div>
+
+      {/* Geographical Distribution Interactive Map Panel */}
+      {!loading && (
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              Sector Geographic Map Anchors
+            </h2>
+            <span className="text-[10px] text-slate-500 font-mono">
+              {filteredIssues.filter(i => i.coordinates && typeof i.coordinates.latitude === 'number').length} of {filteredIssues.length} spots plotted
+            </span>
+          </div>
+          <div className="h-[320px] w-full rounded-2xl overflow-hidden border border-slate-900 shadow-md">
+            <CivicMap issues={filteredIssues} />
+          </div>
+        </div>
+      )}
 
       {/* Feed List */}
       {loading ? (

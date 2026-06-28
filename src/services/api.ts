@@ -79,6 +79,19 @@ const saveFallbackIssues = (issues: Issue[]) => {
   localStorage.setItem(FALLBACK_ISSUES_KEY, JSON.stringify(issues));
 };
 
+const awardLocalActionPoints = (points: number) => {
+  const stored = localStorage.getItem("civicsnap_sandbox_user");
+  if (stored) {
+    try {
+      const profile = JSON.parse(stored);
+      profile.actionPoints = Math.max(0, (profile.actionPoints || 0) + points);
+      localStorage.setItem("civicsnap_sandbox_user", JSON.stringify(profile));
+    } catch (e) {
+      console.error("Failed to award local points:", e);
+    }
+  }
+};
+
 export const apiService = {
   /**
    * 1. Analyze Upload (Multimodal form-data to Gemini)
@@ -145,6 +158,7 @@ export const apiService = {
       };
       issues.unshift(newIssue);
       saveFallbackIssues(issues);
+      awardLocalActionPoints(50);
       return { success: true, id: newIssue.id, message: "Report saved locally." };
     }
   },
@@ -177,8 +191,10 @@ export const apiService = {
         const uid = "mock-current-user"; // mock current
         if (issue.upvotes.includes(uid)) {
           issue.upvotes = issue.upvotes.filter((id) => id !== uid);
+          awardLocalActionPoints(-10);
         } else {
           issue.upvotes.push(uid);
+          awardLocalActionPoints(15);
         }
         saveFallbackIssues(issues);
         return { success: true, issue };
@@ -202,6 +218,7 @@ export const apiService = {
         const uid = "mock-current-user";
         if (!issue.volunteers.includes(uid)) {
           issue.volunteers.push(uid);
+          awardLocalActionPoints(100);
         }
         saveFallbackIssues(issues);
         return { success: true, issue };

@@ -12,6 +12,7 @@ import {
   LocationInfo
 } from "../lib/api";
 import { LocationSeverityPreview } from "../components/LocationSeverityPreview";
+import { HyperlocalRiskOverlay } from "../components/HyperlocalRiskOverlay";
 import { Issue } from "../types/index";
 import { motion } from "motion/react";
 import {
@@ -38,7 +39,7 @@ import {
 } from "lucide-react";
 
 export const LandingPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [tips, setTips] = useState<string[]>([]);
   const [reportCount, setReportCount] = useState(0);
@@ -76,6 +77,7 @@ export const LandingPage: React.FC = () => {
       await apiService.upvoteIssue(issueId);
       const refreshedIssues = await apiService.getIssues();
       setIssues(refreshedIssues);
+      refreshProfile(); // Sync points
     } catch (err) {
       console.error("Upvote failed:", err);
     } finally {
@@ -512,148 +514,9 @@ export const LandingPage: React.FC = () => {
 
       {/* Live Civic Snap Tracker & Dispatch Portal */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-4">
-        {/* Left Column: Quick Ticket Dispatcher Terminal */}
+        {/* Left Column: Hyperlocal Risk Overlay Map */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="space-y-1">
-            <h2 className="text-lg font-bold text-slate-200 flex items-center gap-2">
-              <PlusCircle className="w-5 h-5 text-sky-400" />
-              Quick Dispatch Terminal
-            </h2>
-            <p className="text-xs text-slate-400">
-              Spotted an issue? Generate and broadcast a civic ticket instantly to the community.
-            </p>
-          </div>
-
-          <div className="rounded-3xl bg-gradient-to-b from-slate-900/40 to-slate-950/60 backdrop-blur-md border border-slate-850 p-6 space-y-4 relative overflow-hidden shadow-xl">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/5 rounded-full pointer-events-none filter blur-xl"></div>
-            
-            {user ? (
-              <form onSubmit={handleQuickSubmit} className="space-y-4 relative z-10">
-                {quickError && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-[11px] flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 shrink-0" />
-                    <span>{quickError}</span>
-                  </div>
-                )}
-                {quickSuccess && (
-                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-[11px] flex items-center gap-2">
-                    <Award className="w-4 h-4 text-teal-400 animate-bounce" />
-                    <span>{quickSuccess}</span>
-                  </div>
-                )}
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Issue Title</label>
-                  <input
-                    type="text"
-                    value={quickTitle}
-                    onChange={(e) => setQuickTitle(e.target.value)}
-                    placeholder="e.g., Blocked Drainage Valve or Broken Pavement"
-                    className="w-full bg-slate-950/80 border border-slate-800 focus:border-sky-500/50 rounded-xl py-2.5 px-3.5 text-xs text-white placeholder-slate-600 focus:outline-none transition font-sans"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Category</label>
-                    <select
-                      value={quickCategory}
-                      onChange={(e) => setQuickCategory(e.target.value)}
-                      className="w-full bg-slate-950/80 border border-slate-800 focus:border-sky-500/50 rounded-xl py-2.5 px-3 text-xs text-slate-300 focus:outline-none transition font-sans cursor-pointer"
-                    >
-                      <option value="ROAD_HAZARD">Road Hazard</option>
-                      <option value="POWER_OUTAGE">Power Outage</option>
-                      <option value="WATER_LEAK">Water Leak</option>
-                      <option value="VANDALISM">Vandalism</option>
-                      <option value="PUBLIC_SAFETY">Public Safety</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Severity</label>
-                    <select
-                      value={quickSeverity}
-                      onChange={(e) => setQuickSeverity(e.target.value)}
-                      className="w-full bg-slate-950/80 border border-slate-800 focus:border-sky-500/50 rounded-xl py-2.5 px-3 text-xs text-slate-300 focus:outline-none transition font-sans cursor-pointer"
-                    >
-                      <option value="LOW">Low Risk</option>
-                      <option value="MEDIUM">Medium Risk</option>
-                      <option value="HIGH">High Risk</option>
-                      <option value="CRITICAL">Critical Risk</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex justify-between items-center">
-                    <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Target Location</label>
-                    <span className="text-[9px] text-teal-400 font-mono">GPS Anchored</span>
-                  </div>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-3 w-3.5 h-3.5 text-slate-500" />
-                    <input
-                      type="text"
-                      value={quickLocation}
-                      onChange={(e) => setQuickLocation(e.target.value)}
-                      placeholder={locationName || "Detecting your current location..."}
-                      className="w-full bg-slate-950/80 border border-slate-800 focus:border-sky-500/50 rounded-xl py-2.5 pl-9 pr-4 text-xs text-white placeholder-slate-500 focus:outline-none transition font-sans"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Description</label>
-                  <textarea
-                    value={quickDesc}
-                    onChange={(e) => setQuickDesc(e.target.value)}
-                    placeholder="Provide dynamic, precise details for the repair dispatcher cell..."
-                    rows={3}
-                    className="w-full bg-slate-950/80 border border-slate-800 focus:border-sky-500/50 rounded-xl py-2.5 px-3.5 text-xs text-white placeholder-slate-600 focus:outline-none transition font-sans resize-none"
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={quickSubmitting}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-400 hover:to-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition duration-200 disabled:opacity-50"
-                >
-                  {quickSubmitting ? (
-                    <>
-                      <RefreshCw className="w-4.5 h-4.5 animate-spin" />
-                      Broadcasting Incident...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4 text-slate-950" />
-                      Dispatch Ticket to Live Feed
-                    </>
-                  )}
-                </button>
-              </form>
-            ) : (
-              <div className="py-8 px-4 text-center space-y-4">
-                <div className="mx-auto w-12 h-12 rounded-2xl bg-slate-950/80 border border-slate-850 flex items-center justify-center text-teal-400">
-                  <Wrench className="w-6 h-6 animate-pulse" />
-                </div>
-                <div className="space-y-1.5">
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
-                    Dispatcher Key Required
-                  </h4>
-                  <p className="text-[11px] text-slate-400 max-w-xs mx-auto leading-relaxed">
-                    You must sign in to access the direct community reporting line and log active hazards on the live stream.
-                  </p>
-                </div>
-                <Link
-                  to="/login"
-                  className="inline-block px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold transition"
-                >
-                  Access Portal / Register
-                </Link>
-              </div>
-            )}
-          </div>
+          <HyperlocalRiskOverlay issues={issues} />
         </div>
 
         {/* Right Column: Live Incident stream tracker board */}

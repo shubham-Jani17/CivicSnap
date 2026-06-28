@@ -182,6 +182,29 @@ class FirebaseService:
                 new_points = max(0, current_points + points)
                 user_ref.update({"actionPoints": new_points})
                 logger.info(f"Adjusted action points for {uid} by {points}. New total: {new_points}")
+            else:
+                # If the user profile doesn't exist yet, we auto-create it with default values + points award
+                try:
+                    user_meta = auth.get_user(uid)
+                    email = user_meta.email
+                    name = user_meta.display_name or "Anonymous Citizen"
+                    picture = user_meta.photo_url or f"https://api.dicebear.com/7.x/bottts/svg?seed={uid}"
+                except Exception:
+                    email = "citizen@civicsnap.org"
+                    name = "Anonymous Citizen"
+                    picture = f"https://api.dicebear.com/7.x/bottts/svg?seed={uid}"
+                
+                new_points = max(0, 100 + points) # starts at 100 points
+                user_ref.set({
+                    "uid": uid,
+                    "email": email,
+                    "name": name,
+                    "picture": picture,
+                    "soundEnabled": True,
+                    "actionPoints": new_points,
+                    "createdAt": time.time()
+                })
+                logger.info(f"Created user doc and set initial points for {uid}: {new_points}")
         except Exception as e:
             logger.error(f"Failed to award action points to user {uid}: {e}")
 

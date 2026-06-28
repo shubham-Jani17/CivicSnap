@@ -234,6 +234,34 @@ export const CreateReportPage: React.FC = () => {
   // Submit complete text report to FastAPI / Firestore
   const handleFinalSubmission = async () => {
     setLoading(true);
+    let finalCoordinates = coordinates;
+
+    // Resolve address to actual coordinates using openstreetmap forward geocoding if locationName is manually modified
+    if (locationName && locationName.trim().length > 3) {
+      try {
+        const query = encodeURIComponent(locationName.trim());
+        const geoRes = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`,
+          {
+            headers: {
+              "Accept-Language": "en"
+            }
+          }
+        );
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          if (geoData && geoData.length > 0) {
+            const lat = parseFloat(geoData[0].lat);
+            const lon = parseFloat(geoData[0].lon);
+            finalCoordinates = { latitude: lat, longitude: lon };
+            console.log("Forward geocoded address to coordinates:", finalCoordinates);
+          }
+        }
+      } catch (err) {
+        console.warn("Forward geocoding lookup failed, falling back to cached coordinates:", err);
+      }
+    }
+
     try {
       const payload = {
         title: triageTitle,
@@ -243,7 +271,7 @@ export const CreateReportPage: React.FC = () => {
         authority: triageAuthority,
         summary: triageSummary,
         locationName: locationName,
-        coordinates: coordinates,
+        coordinates: finalCoordinates,
       };
 
       const res = await apiService.submitIssue(payload);
