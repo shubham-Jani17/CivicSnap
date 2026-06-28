@@ -91,6 +91,47 @@ async def get_issues_feed():
     """Retrieves all reported community issues in the neighborhood sector."""
     return FirebaseService.get_all_issues()
 
+@router.get("/insights/monthly")
+async def get_monthly_insights():
+    """Generates an AI-powered monthly insight report based on current issues."""
+    issues = FirebaseService.get_all_issues()
+    # Filter issues for current month if needed, but for now we'll just pass all recent ones
+    # or the last 50 to avoid token limits
+    recent_issues = issues[:50] 
+    
+    from backend.services.gemini import generate_monthly_insights
+    insights = await generate_monthly_insights(recent_issues)
+    return insights
+
+@router.patch("/{issue_id}")
+async def update_issue(issue_id: str, updates: Dict[str, Any], current_user: Dict[str, Any] = Depends(get_current_user)):
+    """Updates an existing issue (Admin functionality)."""
+    # Verify user has admin rights if necessary (Here we just allow authenticated users for simplicity, but in a real app check role)
+    uid = current_user.get("uid")
+    logger.info(f"User {uid} is updating issue {issue_id}.")
+    
+    updated_issue = FirebaseService.update_issue(issue_id, updates)
+    if not updated_issue:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Issue with ID {issue_id} not found."
+        )
+    return {"success": True, "issue": updated_issue}
+
+@router.delete("/{issue_id}")
+async def delete_issue(issue_id: str, current_user: Dict[str, Any] = Depends(get_current_user)):
+    """Deletes an issue (Admin functionality)."""
+    uid = current_user.get("uid")
+    logger.info(f"User {uid} is deleting issue {issue_id}.")
+    
+    success = FirebaseService.delete_issue(issue_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Issue with ID {issue_id} not found or could not be deleted."
+        )
+    return {"success": True}
+
 @router.post("/{issue_id}/upvote")
 async def upvote_issue(issue_id: str, current_user: Dict[str, Any] = Depends(get_current_user)):
     """

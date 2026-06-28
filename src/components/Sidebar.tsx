@@ -25,7 +25,9 @@ export const Sidebar: React.FC = () => {
         ]
       : []),
     { to: "/feed", label: "Community Feed", icon: FileText },
-    ...(user ? [{ to: "/profile", label: "Citizen Profile", icon: User }] : []),
+    ...(user ? [
+      { to: "/profile", label: "Citizen Profile", icon: User }
+    ] : []),
   ];
 
   return (

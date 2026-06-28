@@ -318,4 +318,58 @@ export const apiService = {
       ];
     }
   },
+
+  /**
+   * 9. Update an Issue (Admin)
+   */
+  async updateIssue(issueId: string, updates: Partial<Issue>): Promise<any> {
+    try {
+      const response = await apiClient.patch(`/api/issues/${issueId}`, updates);
+      return response.data;
+    } catch (err) {
+      console.warn("Backend updateIssue failed, updating local state:", err);
+      const issues = getFallbackIssues();
+      const idx = issues.findIndex((i) => i.id === issueId);
+      if (idx !== -1) {
+        issues[idx] = { ...issues[idx], ...updates };
+        saveFallbackIssues(issues);
+        return { success: true, issue: issues[idx] };
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * 10. Delete an Issue (Admin)
+   */
+  async deleteIssue(issueId: string): Promise<any> {
+    try {
+      const response = await apiClient.delete(`/api/issues/${issueId}`);
+      return response.data;
+    } catch (err) {
+      console.warn("Backend deleteIssue failed, updating local state:", err);
+      const issues = getFallbackIssues();
+      const updatedIssues = issues.filter((i) => i.id !== issueId);
+      saveFallbackIssues(updatedIssues);
+      return { success: true };
+    }
+  },
+
+  /**
+   * 11. Get Monthly Insights (Admin)
+   */
+  async getMonthlyInsights(): Promise<any> {
+    try {
+      const response = await apiClient.get('/api/issues/insights/monthly');
+      return response.data;
+    } catch (err) {
+      console.warn("Backend getMonthlyInsights failed, using fallback:", err);
+      return {
+        month: "Current",
+        top_issues_summary: "No AI insights available. Connectivity issue.",
+        actionable_advice: "Check backend server status.",
+        trend: "unknown"
+      };
+    }
+  }
 };

@@ -1,7 +1,7 @@
 import base64
 import json
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from google import genai
 from google.genai import types
 from google.genai.errors import APIError
@@ -105,6 +105,76 @@ async def analyze_civic_issue_bytes(image_bytes: bytes, mime_type: str, location
             "isMock": True,
             "error_details": str(e),
             "analysis": MOCK_ANALYSIS
+        }
+
+async def generate_monthly_insights(issues_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Analyzes a list of recent civic issues and generates a monthly summary insight report
+    using Google Gemini.
+    """
+    client = get_gemini_client()
+    
+    if not client:
+        logger.warning("Gemini Client not available. Using mock monthly insights.")
+        return {
+            "month": "Current",
+            "top_issues_summary": "Potholes and street lighting dominate this month's reports.",
+            "actionable_advice": "Focus public works efforts on road maintenance in the downtown area.",
+            "trend": "increasing"
+        }
+
+    try:
+        # Provide a structured summary of the issues for context
+        issues_summary = json.dumps([
+            {
+                "title": i.get("title"), 
+                "category": i.get("category"), 
+                "severity": i.get("severity"),
+                "status": i.get("status")
+            } for i in issues_data
+        ], indent=2)
+
+        prompt_text = f"""
+        You are the Chief Data Analyst for a city municipal administration dashboard.
+        Review the following recent civic issues reported by citizens this month:
+        
+        {issues_summary}
+        
+        Generate a concise "Monthly Insight" report that analyzes current report trends.
+        Include:
+        - "month": The current month (just use "Current Month" or infer if possible).
+        - "top_issues_summary": A 2-3 sentence summary of the most prominent or severe neighborhood issues.
+        - "actionable_advice": A 1-2 sentence recommendation for the administration on what to prioritize.
+        - "trend": Single word describing the volume/severity trend (e.g. "increasing", "stable", "decreasing", "critical").
+        
+        Return exactly as JSON matching these keys.
+        """
+
+        logger.info("Dispatching monthly insights analysis to Gemini Model...")
+        
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt_text,
+            config=types.GenerateContentConfig(
+                temperature=0.3,
+                response_mime_type="application/json",
+            )
+        )
+
+        if not response.text:
+            raise ValueError("No text payload returned from Gemini AI.")
+
+        parsed_json = json.loads(response.text.strip())
+        logger.info("Successfully generated monthly insights.")
+        return parsed_json
+
+    except Exception as e:
+        logger.error(f"Failed to generate monthly insights: {e}")
+        return {
+            "month": "Current",
+            "top_issues_summary": "Unable to generate AI insights at this time.",
+            "actionable_advice": "Review system logs to restore AI service.",
+            "trend": "unknown"
         }
 
 async def analyze_civic_issue(image_base64: str, location_name: Optional[str] = None) -> Dict[str, Any]:

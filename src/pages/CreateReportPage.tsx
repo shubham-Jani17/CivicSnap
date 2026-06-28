@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { apiService } from "../services/api";
+import { LocationService } from "../services/LocationService";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Upload,
@@ -17,6 +18,8 @@ import {
   Shield,
   Clock
 } from "lucide-react";
+import { CivicMap } from "../components/CivicMap";
+import { Issue } from "../types/index";
 
 export const CreateReportPage: React.FC = () => {
   const { user, refreshProfile } = useAuth();
@@ -55,56 +58,22 @@ export const CreateReportPage: React.FC = () => {
 
   const fetchAddress = async (lat: number, lon: number) => {
     setFetchingGeo(true);
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`,
-        {
-          headers: {
-            "Accept-Language": "en"
-          }
-        }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.display_name) {
-          const addressParts = data.display_name.split(",");
-          // Join the first 4 specific parts (e.g., building, street, neighborhood, city)
-          const mainAddress = addressParts.slice(0, 4).join(",").trim();
-          setLocationName(mainAddress || data.display_name);
-        } else {
-          setLocationName(`Sector Coordinates: ${lat.toFixed(4)}, ${lon.toFixed(4)}`);
-        }
-      } else {
-        setLocationName(`Sector Coordinates: ${lat.toFixed(4)}, ${lon.toFixed(4)}`);
-      }
-    } catch (err) {
-      console.warn("Reverse address lookup failed:", err);
-      setLocationName(`Sector Coordinates: ${lat.toFixed(4)}, ${lon.toFixed(4)}`);
-    } finally {
-      setFetchingGeo(false);
-    }
+    const address = await LocationService.getAddressFromCoordinates(lat, lon);
+    setLocationName(address);
+    setFetchingGeo(false);
   };
 
-  const detectLocation = () => {
-    if (navigator.geolocation) {
-      setFetchingGeo(true);
-      setError(null);
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const lat = pos.coords.latitude;
-          const lon = pos.coords.longitude;
-          setCoordinates({ latitude: lat, longitude: lon });
-          await fetchAddress(lat, lon);
-        },
-        (err) => {
-          console.warn("Geolocation failed:", err);
-          setError("Failed to acquire GPS signal. Please type your address manually.");
-          setFetchingGeo(false);
-        },
-        { timeout: 7000, enableHighAccuracy: true }
-      );
-    } else {
-      setError("Browser geolocation is not supported on this device.");
+  const detectLocation = async () => {
+    setFetchingGeo(true);
+    setError(null);
+    try {
+      const coords = await LocationService.getCurrentLocation();
+      setCoordinates(coords);
+      await fetchAddress(coords.latitude, coords.longitude);
+    } catch (err: any) {
+      console.warn("Geolocation failed:", err);
+      setError(err.message || "Failed to acquire GPS signal. Please type your address manually.");
+      setFetchingGeo(false);
     }
   };
 
@@ -112,6 +81,20 @@ export const CreateReportPage: React.FC = () => {
   useEffect(() => {
     detectLocation();
   }, []);
+
+  // Update map coordinates dynamically when address is typed
+  useEffect(() => {
+    const handler = setTimeout(async () => {
+      if (locationName && locationName.trim().length > 3) {
+        const coords = await LocationService.getCoordinatesFromAddress(locationName);
+        if (coords) {
+          setCoordinates(coords);
+        }
+      }
+    }, 1000); // debounce 1s
+
+    return () => clearTimeout(handler);
+  }, [locationName]);
 
   // Drag and drop handlers
   const handleDrag = (e: React.DragEvent) => {
@@ -238,27 +221,10 @@ export const CreateReportPage: React.FC = () => {
 
     // Resolve address to actual coordinates using openstreetmap forward geocoding if locationName is manually modified
     if (locationName && locationName.trim().length > 3) {
-      try {
-        const query = encodeURIComponent(locationName.trim());
-        const geoRes = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`,
-          {
-            headers: {
-              "Accept-Language": "en"
-            }
-          }
-        );
-        if (geoRes.ok) {
-          const geoData = await geoRes.json();
-          if (geoData && geoData.length > 0) {
-            const lat = parseFloat(geoData[0].lat);
-            const lon = parseFloat(geoData[0].lon);
-            finalCoordinates = { latitude: lat, longitude: lon };
-            console.log("Forward geocoded address to coordinates:", finalCoordinates);
-          }
-        }
-      } catch (err) {
-        console.warn("Forward geocoding lookup failed, falling back to cached coordinates:", err);
+      const coords = await LocationService.getCoordinatesFromAddress(locationName);
+      if (coords) {
+        finalCoordinates = coords;
+        console.log("Forward geocoded address to coordinates:", finalCoordinates);
       }
     }
 
@@ -404,32 +370,58 @@ export const CreateReportPage: React.FC = () => {
             )}
 
             {/* Location context field */}
-            <div className="space-y-1.5 pt-2">
-              <div className="flex justify-between items-center gap-2">
-                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-sky-400" />
-                  Descriptive Location Address
-                </label>
-                <button
-                  type="button"
-                  onClick={detectLocation}
-                  disabled={fetchingGeo}
-                  className="text-[10px] text-sky-400 hover:text-sky-300 font-bold flex items-center gap-1 bg-sky-500/10 hover:bg-sky-500/20 px-2 py-1 rounded-xl border border-sky-500/10 transition cursor-pointer"
-                >
-                  <RefreshCw className={`w-3 h-3 ${fetchingGeo ? "animate-spin" : ""}`} />
-                  {fetchingGeo ? "Detecting..." : "Auto-Detect Location"}
-                </button>
+            <div className="space-y-4 pt-2">
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center gap-2">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-sky-400" />
+                    Descriptive Location Address
+                  </label>
+                  <button
+                    type="button"
+                    onClick={detectLocation}
+                    disabled={fetchingGeo}
+                    className="text-[10px] text-sky-400 hover:text-sky-300 font-bold flex items-center gap-1 bg-sky-500/10 hover:bg-sky-500/20 px-2 py-1 rounded-xl border border-sky-500/10 transition cursor-pointer"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${fetchingGeo ? "animate-spin" : ""}`} />
+                    {fetchingGeo ? "Detecting..." : "Auto-Detect Location"}
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  placeholder="e.g. 104 Oakwood Lane Boulevard, Sector 7"
+                  value={locationName}
+                  onChange={(e) => setLocationName(e.target.value)}
+                  className="w-full bg-slate-950/60 border border-slate-850 focus:border-teal-500/50 rounded-xl py-3 px-4 text-xs text-white placeholder-slate-550 focus:outline-none transition font-sans"
+                />
+                <p className="text-[9px] text-slate-500 font-mono">
+                  {fetchingGeo ? "Fetching live coordinates..." : `GPS Coordinates aligned: ${coordinates.latitude.toFixed(4)}, ${coordinates.longitude.toFixed(4)}`}
+                </p>
               </div>
-              <input
-                type="text"
-                placeholder="e.g. 104 Oakwood Lane Boulevard, Sector 7"
-                value={locationName}
-                onChange={(e) => setLocationName(e.target.value)}
-                className="w-full bg-slate-950/60 border border-slate-850 focus:border-teal-500/50 rounded-xl py-3 px-4 text-xs text-white placeholder-slate-550 focus:outline-none transition font-sans"
-              />
-              <p className="text-[9px] text-slate-500 font-mono">
-                {fetchingGeo ? "Fetching live coordinates..." : `GPS Coordinates aligned: ${coordinates.latitude.toFixed(4)}, ${coordinates.longitude.toFixed(4)}`}
-              </p>
+              
+              {/* CivicMap Preview */}
+              <div className="h-48 rounded-xl overflow-hidden border border-slate-850 relative">
+                <CivicMap
+                  issues={[{
+                    id: 'preview-marker',
+                    title: 'Current Location',
+                    description: locationName || 'Selected Location',
+                    category: 'ROAD_HAZARD',
+                    severity: 'MEDIUM',
+                    status: 'REPORTED',
+                    locationName: locationName || 'Detecting...',
+                    coordinates: coordinates,
+                    upvotes: [],
+                    volunteers: [],
+                    authority: '',
+                    summary: '',
+                    reporterUid: '',
+                    createdAt: Date.now()
+                  }] as Issue[]}
+                  center={[coordinates.latitude, coordinates.longitude]}
+                  zoom={15}
+                />
+              </div>
             </div>
 
             {/* Triage Submit Trigger */}

@@ -6,7 +6,8 @@ import {
   LayoutDashboard,
   PlusCircle,
   FileText,
-  User
+  User,
+  Shield
 } from "lucide-react";
 
 export const MobileNav: React.FC = () => {

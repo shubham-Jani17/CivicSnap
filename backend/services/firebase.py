@@ -110,6 +110,38 @@ class FirebaseService:
             return []
 
     @staticmethod
+    def update_issue(issue_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Updates specific fields of a reported issue."""
+        db = get_firestore_client()
+        if not db:
+            return None
+        try:
+            doc_ref = db.collection("issues").document(issue_id)
+            doc = doc_ref.get()
+            if not doc.exists:
+                return None
+            doc_ref.update(updates)
+            # return updated doc
+            return doc_ref.get().to_dict()
+        except Exception as e:
+            logger.error(f"Failed to update issue {issue_id}: {e}")
+            return None
+
+    @staticmethod
+    def delete_issue(issue_id: str) -> bool:
+        """Deletes an issue from the database."""
+        db = get_firestore_client()
+        if not db:
+            return False
+        try:
+            doc_ref = db.collection("issues").document(issue_id)
+            doc_ref.delete()
+            return True
+        except Exception as e:
+            logger.error(f"Failed to delete issue {issue_id}: {e}")
+            return False
+
+    @staticmethod
     def toggle_upvote_issue(issue_id: str, uid: str) -> Optional[Dict[str, Any]]:
         """Toggles a user's upvote on a reported issue and manages civic points."""
         db = get_firestore_client()
