@@ -1,91 +1,245 @@
-# CivicSnap
+# 🚀 CivicSnap – AI-Powered Community Problem Solver
 
-CivicSnap is an AI-powered civic reporting and local volunteering action hub. It empowers citizens to snap photos of neighborhood issues, automatically generate municipal complaint drafts using AI, and organize volunteer cleanups.
+<p align="center">
+  <img src="assets/vibe2ship-banner.png" alt="CodeNinjas Vibe2Ship Hackathon Banner" width="100%">
+</p>
 
-## Features
+<p align="center">
+  <h3 align="center">🏆 Built for the <b>CodeNinjas Vibe2Ship Hackathon</b></h3>
+  <p align="center">
+    Empowering citizens with AI to report, track, and resolve civic issues faster.
+  </p>
+</p>
 
-- **AI-Powered Reporting**: Snap a photo of an issue (pothole, graffiti, etc.), and the integrated Gemini AI engine automatically classifies the severity and drafts a professional municipal complaint.
-- **Interactive Civic Map**: View real-time reports and hyper-local risk overlays in your neighborhood on an interactive map.
-- **Community Feed**: Discover and engage with community reports and upcoming volunteer cleanup events.
-- **Volunteer Organization**: Join local cleanup campaigns and coordinate with neighbors.
-- **Admin Dashboard**: Dedicated portal for administrators to review, approve, and manage civic issues.
-- **Cinematic Experience**: Premium, responsive user interface featuring glassmorphism, Framer Motion animations, and a secure "Command Center" theme.
+---
 
-## Tech Stack
+## 🌍 Live Demo
 
-### Frontend
-- **React 19** with **Vite**
-- **Tailwind CSS v4** for styling and responsive design
-- **Framer Motion** for elegant animations and transitions
-- **Lucide React** for beautiful, consistent iconography
-- **React Leaflet** for interactive mapping
-- **Recharts** for data visualization
+🔗 **Project Link:**
+https://civicsnap-476131593431.asia-southeast1.run.app
 
-### Backend & API
-- **Express.js (Node.js)**: Serves static assets and acts as a gateway/proxy.
-- **FastAPI (Python)**: Handles core AI logic, data processing, and API routes.
-- **Firebase**: Provides secure authentication and NoSQL database capabilities (Firestore).
-- **Google Gemini API**: Powers the AI analytics and automatic complaint generation.
+---
 
-## Getting Started
+# 📌 About CivicSnap
 
-### Prerequisites
-- Node.js (v18+)
-- Python (3.10+)
-- Firebase project credentials
-- Google Gemini API Key
+**CivicSnap** is an AI-powered civic issue reporting platform that enables citizens to report local problems such as:
 
-### Installation
+* 🛣️ Potholes
+* 💡 Broken Streetlights
+* 🚮 Garbage Dumps
+* 🚰 Water Leakage
+* 🌳 Fallen Trees
+* 🚦 Traffic Issues
+* 🏗️ Public Infrastructure Problems
 
-1. **Clone the repository** (if applicable) or open it in your environment.
-2. **Install Node.js dependencies**:
-   ```bash
-   npm install
-   ```
-3. **Install Python dependencies**:
-   ```bash
-   pip install -r backend/requirements.txt
-   ```
-4. **Environment Variables**:
-   Create a `.env` file in the root directory based on `.env.example` and add your API keys:
-   ```env
-   GEMINI_API_KEY=your_gemini_api_key
-   FIREBASE_PROJECT_ID=your_firebase_project_id
-   ```
+Using **Google Gemini AI**, CivicSnap analyzes uploaded images, understands the issue, categorizes it, assigns priority, and generates a structured civic complaint to simplify communication with local authorities.
 
-### Running the Development Server
+The platform also helps communities collaborate, monitor issue progress, and improve transparency between citizens and governing bodies.
 
-Start the full-stack development environment (this runs both the Express Vite server and the Python FastAPI backend):
+---
 
-```bash
-npm run dev
+# ✨ Key Features
+
+### 🤖 AI Issue Analysis
+
+* AI-powered image understanding
+* Automatic issue categorization
+* Smart severity detection
+* AI-generated complaint description
+
+### 📸 Image-Based Reporting
+
+* Upload issue photographs
+* AI extracts contextual information
+* Supports location-based reporting
+
+### 🗺️ Interactive Map
+
+* View reported issues geographically
+* Explore nearby community reports
+* Improve local awareness
+
+### 📊 Analytics Dashboard
+
+* Total Reports
+* Active Issues
+* Resolved Issues
+* Community Insights
+* Visual Charts & Statistics
+
+### 👥 Community Collaboration
+
+* Track reported issues
+* View issue status
+* Encourage community participation
+* Transparent reporting system
+
+### 🔥 Real-Time Status Tracking
+
+* Submitted
+* Under Review
+* In Progress
+* Resolved
+
+---
+
+# 🧠 AI Capabilities
+
+Powered by **Google Gemini AI**, CivicSnap can:
+
+✅ Analyze uploaded images
+
+✅ Understand civic issues
+
+✅ Detect issue category
+
+✅ Estimate severity
+
+✅ Generate professional complaint text
+
+✅ Assist citizens in creating better reports
+
+---
+
+# 🛠️ Tech Stack
+
+## Frontend
+
+* ⚛️ React
+* ⚡ Vite
+* 🎨 Tailwind CSS
+* 🗺️ Leaflet Maps
+* 📊 Recharts
+
+## Backend
+
+* 🐍 FastAPI
+* 🌐 Express Gateway
+* 🔥 Firebase
+* 🤖 Google Gemini AI
+
+## Cloud & Deployment
+
+* ☁️ Google Cloud Run
+* 🔥 Firebase Services
+
+---
+
+# 📂 Project Architecture
+
+```text
+Citizen
+    │
+    ▼
+React Frontend
+    │
+    ▼
+Express Gateway
+    │
+    ▼
+FastAPI Backend
+    │
+ ┌──┴──────────────┐
+ ▼                 ▼
+Firebase      Gemini AI
 ```
-The application will be available at `http://localhost:3000`. The API requests are automatically proxied to the Python backend running on port `8000`.
 
-### Building for Production
+---
 
-Compile the frontend assets and bundle the server for production:
+# 🚀 Project Workflow
 
-```bash
-npm run build
+```text
+📸 Upload Image
+
+        ↓
+
+🤖 AI Analysis
+
+        ↓
+
+🏷️ Categorization
+
+        ↓
+
+📍 Location Detection
+
+        ↓
+
+📝 Complaint Generation
+
+        ↓
+
+📤 Report Submission
+
+        ↓
+
+📊 Dashboard Tracking
 ```
 
-Start the production server:
+---
 
-```bash
-npm run start
-```
+# 🎯 Problem Statement
 
-## Project Structure
+Many civic issues remain unresolved because:
 
-- `/src`: Frontend React application code (Components, Pages, Services, Contexts).
-- `/backend`: Python FastAPI backend code (Routers, Services, Schemas).
-- `/server.ts`: The Express server entry point that serves the Vite app and spawns/proxies the Python backend.
-- `metadata.json`: Application configuration and required permissions (Camera, Geolocation).
+* Citizens don't know where to report them.
+* Reporting is often slow and manual.
+* Authorities receive incomplete information.
+* There is limited transparency after submission.
 
-## Design Philosophy
+CivicSnap addresses these challenges by making reporting intelligent, structured, and community-driven.
 
-CivicSnap uses a "Cyber Command Center" theme, characterized by Deep Navy backgrounds, Cyan/Teal accents, glassmorphic elements, and smooth spring animations. The interface is designed to make users feel like they are accessing an intelligent civic operating system.
+---
 
-## License
-Apache-2.0
+# 🌟 Why CivicSnap?
+
+* 🚀 AI-first civic reporting
+* 🌍 Hyperlocal community impact
+* 📸 Image-based issue detection
+* 🤖 Intelligent complaint generation
+* 📊 Insightful analytics
+* 📍 Interactive mapping
+* 🔥 Modern full-stack architecture
+
+---
+
+# 🏆 Hackathon Submission
+
+This project was built as part of the **CodeNinjas Vibe2Ship Hackathon**.
+
+The goal was to create an AI-powered solution that solves meaningful real-world problems using modern technologies and practical innovation.
+
+---
+
+# 📈 Future Enhancements
+
+* 🔔 Real-time notifications
+* 📱 Progressive Web App (PWA)
+* 🛰️ Live issue tracking
+* 👮 Municipality dashboard
+* 🏅 Community rewards & badges
+* 🌐 Multi-language support
+* 📡 Smart duplicate issue detection
+* 📊 Advanced AI insights
+
+---
+
+# 🤝 Contributing
+
+Contributions, ideas, and suggestions are always welcome!
+
+If you'd like to improve CivicSnap, feel free to fork the repository and submit a pull request.
+
+---
+
+# 📬 Contact
+
+If you enjoyed this project, consider giving it a ⭐ on GitHub!
+
+Let's build smarter communities together. 🚀
+
+---
+
+<p align="center">
+Made with ❤️, ☕ and 🤖 AI for the CodeNinjas Vibe2Ship Hackathon.
+</p>
