@@ -217,15 +217,41 @@ export const LandingPage: React.FC = () => {
         setLoadingIssues(false);
       }
 
-      // Try background IP location lookup for responsive default (user's real city!)
+      // Try to get exact GPS location for perfect weather tracking, fallback to IP location
       setIsLocating(true);
+      
+      const getExactLocation = () => {
+        return new Promise<void>((resolve, reject) => {
+          if (!navigator.geolocation) {
+            reject(new Error("Geolocation not supported"));
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              const { latitude, longitude } = position.coords;
+              await loadWeatherForCoords(latitude, longitude);
+              resolve();
+            },
+            (error) => {
+              reject(error);
+            },
+            { enableHighAccuracy: true, timeout: 8000 }
+          );
+        });
+      };
+
       try {
-        const ipLoc = await fetchIPLocation();
-        const displayName = `${ipLoc.city}${ipLoc.region ? `, ${ipLoc.region}` : ""}${ipLoc.countryCode ? ` (${ipLoc.countryCode})` : ""}`;
-        await loadWeatherForCoords(ipLoc.lat, ipLoc.lng, displayName);
-      } catch (err) {
-        // Fallback to SF City Hall
-        await loadWeatherForCoords(37.7794, -122.4169, "San Francisco, CA");
+        await getExactLocation();
+      } catch (error) {
+        console.warn("GPS access denied or failed on load, using IP fallback:", error);
+        try {
+          const ipLoc = await fetchIPLocation();
+          const displayName = `${ipLoc.city}${ipLoc.region ? `, ${ipLoc.region}` : ""}${ipLoc.countryCode ? ` (${ipLoc.countryCode})` : ""}`;
+          await loadWeatherForCoords(ipLoc.lat, ipLoc.lng, displayName);
+        } catch (err) {
+          // Fallback to SF City Hall
+          await loadWeatherForCoords(37.7794, -122.4169, "San Francisco, CA");
+        }
       } finally {
         setIsLocating(false);
       }
