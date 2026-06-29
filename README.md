@@ -1,7 +1,7 @@
 # 🚀 CivicSnap – AI-Powered Community Problem Solver
 
 <p align="center">
-  <img src="assets/vibe2ship-banner.png" alt="CodeNinjas Vibe2Ship Hackathon Banner" width="100%">
+  <img src="[assets/vibe2ship-banner.png](https://www.codingninjas.com/landing/10x-vibe2ship/)" alt="CodeNinjas Vibe2Ship Hackathon Banner" width="100%">
 </p>
 
 <p align="center">
