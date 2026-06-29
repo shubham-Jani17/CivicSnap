@@ -3,12 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { AnimatePresence } from "motion/react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Navbar } from "./components/Navbar";
 import { Sidebar } from "./components/Sidebar";
 import { MobileNav } from "./components/MobileNav";
+import { IntroAnimation } from "./components/IntroAnimation";
 
 // Page Components
 import { LandingPage } from "./pages/LandingPage";
@@ -115,9 +117,25 @@ const AppContent: React.FC = () => {
 };
 
 export default function App() {
+  const [showIntro, setShowIntro] = useState(true);
+  const navigate = useNavigate();
+
+  const handleIntroComplete = () => {
+    setShowIntro(false);
+    localStorage.setItem('civicsnap_intro_completed', 'true');
+    navigate('/');
+  };
+
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <>
+      <AnimatePresence mode="wait">
+        {showIntro && <IntroAnimation onComplete={handleIntroComplete} />}
+      </AnimatePresence>
+      {!showIntro && (
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      )}
+    </>
   );
 }
