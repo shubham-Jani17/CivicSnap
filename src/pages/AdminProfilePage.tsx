@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { Shield, Mail, Lock, User, Save, CheckCircle } from "lucide-react";
+import { Shield, Mail, Lock, User, Save, CheckCircle, Eye, EyeOff } from "lucide-react";
 
 export const AdminProfilePage: React.FC = () => {
   const [email, setEmail] = useState("shubhamjani1726@gmail.com");
   const [password, setPassword] = useState("Shubham@1726");
+  const [showPassword, setShowPassword] = useState(false);
   const [authorityName, setAuthorityName] = useState("Central Civic Authority");
   const [authorityLevel, setAuthorityLevel] = useState("Super Admin");
   const [contactPhone, setContactPhone] = useState("+1-800-CIVIC-HERO");
@@ -80,12 +81,19 @@ export const AdminProfilePage: React.FC = () => {
                   <Lock className="w-4 h-4 text-slate-500" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-950/50 border border-slate-800 focus:border-sky-500/50 rounded-xl py-3 pl-11 pr-4 text-sm text-white placeholder-slate-600 focus:outline-none transition"
+                  className="w-full bg-slate-950/50 border border-slate-800 focus:border-sky-500/50 rounded-xl py-3 pl-11 pr-11 text-sm text-white placeholder-slate-600 focus:outline-none transition"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-slate-300 focus:outline-none cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
           </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { motion, AnimatePresence } from "motion/react";
-import { Shield, Sparkles, Mail, Lock, User, AlertCircle, ArrowRight, X, Plus, ChevronRight } from "lucide-react";
+import { Shield, Sparkles, Mail, Lock, User, AlertCircle, ArrowRight, X, Plus, ChevronRight, Eye, EyeOff } from "lucide-react";
 import { hasFirebase, getSandboxUsers } from "../services/firebase";
 import { UserProfile } from "../types/index";
 
@@ -20,6 +20,8 @@ export const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [resetSuccess, setResetSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     // If user is already authenticated, redirect straight to dashboard
@@ -206,12 +208,19 @@ export const LoginPage: React.FC = () => {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-950/60 border border-slate-850 focus:border-teal-500/60 rounded-xl py-3 pl-11 pr-4 text-sm text-white placeholder-slate-550 focus:outline-none transition duration-150 font-sans"
+                  className="w-full bg-slate-950/60 border border-slate-850 focus:border-teal-500/60 rounded-xl py-3 pl-11 pr-11 text-sm text-white placeholder-slate-550 focus:outline-none transition duration-150 font-sans"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-3.5 text-slate-500 hover:text-slate-300 focus:outline-none cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
           )}
@@ -222,12 +231,19 @@ export const LoginPage: React.FC = () => {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
                 <input
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full bg-slate-950/60 border border-slate-850 focus:border-teal-500/60 rounded-xl py-3 pl-11 pr-4 text-sm text-white placeholder-slate-550 focus:outline-none transition duration-150 font-sans"
+                  className="w-full bg-slate-950/60 border border-slate-850 focus:border-teal-500/60 rounded-xl py-3 pl-11 pr-11 text-sm text-white placeholder-slate-550 focus:outline-none transition duration-150 font-sans"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3.5 top-3.5 text-slate-500 hover:text-slate-300 focus:outline-none cursor-pointer"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
           )}

@@ -229,6 +229,26 @@ export const CreateReportPage: React.FC = () => {
     }
 
     try {
+      // AI Duplicate Report Check
+      const existingIssues = await apiService.getIssues();
+      const isDuplicate = existingIssues.some(issue => {
+        if (issue.category === triageCategory) {
+          const distance = LocationService.calculateDistance(
+            finalCoordinates.latitude, finalCoordinates.longitude,
+            issue.coordinates.latitude, issue.coordinates.longitude
+          );
+          // Flag as duplicate if same category and within 50 meters (0.05 km)
+          return distance < 0.05;
+        }
+        return false;
+      });
+
+      if (isDuplicate) {
+        alert("AI Duplicate Detected: This issue has been submitted recently by another user. Taking you back to dashboard...");
+        navigate("/dashboard");
+        return;
+      }
+
       const payload = {
         title: triageTitle,
         description: triageDescription,
